@@ -1,12 +1,8 @@
 fastapi
-uvicorn
+uvicorn[standard]
 pydantic
 pydantic-settings
+python-jose[cryptography]
 python-multipart
-google-genai
-motor
-cloudinary
+google-generativeai
 python-dotenv
-httpx
-pymongo[srv]
-dotenv
