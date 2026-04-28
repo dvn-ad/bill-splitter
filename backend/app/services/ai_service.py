@@ -80,7 +80,7 @@ def _get_model(name: str) -> genai.GenerativeModel:
 
 
 async def extract_invoice(image_base64: str, media_type: str) -> str:
-    model = _get_model("gemini-1.5-flash")
+    model = _get_model("gemini-2.5-flash-lite")
     image_bytes = base64.b64decode(image_base64)
     response = await model.generate_content_async([
         _INVOICE_PARSING_PROMPT,
@@ -98,7 +98,7 @@ async def chat(message: str, invoice: Invoice, history: list[ChatMessage]) -> di
         chat_history=history_text,
     )
 
-    model = _get_model("gemini-1.5-flash")
+    model = _get_model("gemini-2.5-flash-lite")
     response = await model.generate_content_async([system_prompt, message])
 
     raw = response.text.strip()

@@ -6,8 +6,8 @@ export function InvoiceProvider({ children }) {
   const [invoice, setInvoice] = useState(null);
   const [chatHistory, setChatHistory] = useState([]);
 
-  const addMessage = (role, content) => {
-    setChatHistory((prev) => [...prev, { role, content }]);
+  const addMessage = (role, content, operation = null, result = null) => {
+    setChatHistory((prev) => [...prev, { role, content, operation, result }]);
   };
 
   const updateInvoice = (updated) => setInvoice(updated);
