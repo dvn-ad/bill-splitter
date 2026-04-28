@@ -59,12 +59,12 @@ Use this exact schema:
 }}
 
 Supported operations:
-- split_equal         → divide total by N people. variables: {"people": N}
-- split_by_item       → assign specific items to specific people. variables: {"item_assignments": {"Person": ["Item1", "Item2"]}}
-- exclude_item        → remove an item and recalculate total. variables: {"item_name": "string"}
-- exclude_charge      → remove tax or service_charge and recalculate. variables: {"charge_type": "tax"|"service_charge"}
-- sum_category        → sum items matching a description. variables: {"category": "string"}
-- update_item_price   → correct a misread item price and recalculate. variables: {"item_name": "string", "new_price": number}
+- split_equal         → divide total by N people. variables: {{"people": N}}
+- split_by_item       → assign specific items to specific people. variables: {{"item_assignments": {{"Person": ["Item1", "Item2"]}}}}
+- exclude_item        → remove an item and recalculate total. variables: {{"item_name": "string"}}
+- exclude_charge      → remove tax or service_charge and recalculate. variables: {{"charge_type": "tax"|"service_charge"}}
+- sum_category        → sum items matching a description. variables: {{"category": "string"}}
+- update_item_price   → correct a misread item price and recalculate. variables: {{"item_name": "string", "new_price": number}}
 
 Rules for splitting:
 1. When splitting by item, always distribute tax and service charge PROPORTIONALLY based on each person's subtotal.
