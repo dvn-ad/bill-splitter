@@ -1,0 +1,111 @@
+import base64
+import json
+import google.generativeai as genai
+from app.core.config import get_settings
+from app.models.invoice import Invoice
+from app.models.chat import ChatMessage
+
+_INVOICE_PARSING_PROMPT = """\
+You are an invoice data extractor.
+
+Extract the following from the receipt image and return ONLY valid JSON.
+No explanation, no markdown, no backticks.
+
+Return this exact schema:
+{
+  "currency": "IDR" or "USD",
+  "subtotal": <number>,
+  "tax": <number or 0>,
+  "service_charge": <number or 0>,
+  "total": <number>,
+  "items": [
+    {
+      "name": <string>,
+      "price": <unit price as number>,
+      "quantity": <integer>,
+      "subtotal": <price * quantity>
+    }
+  ]
+}
+
+Rules:
+- Detect currency from symbols (Rp = IDR, $ = USD)
+- If tax or service charge is not present, use 0
+- All prices must be plain numbers, no currency symbols
+- Do not infer or guess items not visible in the image\
+"""
+
+_CHAT_SYSTEM_PROMPT = """\
+You are a bill splitting assistant. You help users analyze and split invoices.
+
+You have access to the following invoice data:
+{invoice_json}
+
+The user's conversation history is:
+{chat_history}
+
+You must ALWAYS respond with a single valid JSON object. No explanation outside the JSON.
+No markdown, no backticks.
+
+Use this exact schema:
+{{
+  "operation": <string>,
+  "variables": <object of values used>,
+  "expression": <human-readable equation string>,
+  "result": <computed value — number, array, or object>,
+  "explanation": <friendly natural language summary>,
+  "updated_invoice": <full updated invoice object, or null if unchanged>
+}}
+
+Supported operations:
+- split_equal         → divide total by N people
+- split_by_item       → assign specific items to specific people
+- exclude_item        → remove an item and recalculate total
+- exclude_charge      → remove tax or service_charge and recalculate
+- sum_category        → sum items matching a description (e.g. "drinks")
+- compare_amount      → compare a given amount against a split result
+- update_item_price   → correct a misread item price and recalculate
+
+If the user's request is unclear, set operation to "clarify" and use the
+explanation field to ask a follow-up question.
+
+All monetary results must be in the same currency as the invoice.\
+"""
+
+
+def _get_model(name: str) -> genai.GenerativeModel:
+    settings = get_settings()
+    genai.configure(api_key=settings.GEMINI_API_KEY)
+    return genai.GenerativeModel(name)
+
+
+async def extract_invoice(image_base64: str, media_type: str) -> str:
+    model = _get_model("gemini-1.5-flash")
+    image_bytes = base64.b64decode(image_base64)
+    response = await model.generate_content_async([
+        _INVOICE_PARSING_PROMPT,
+        {"mime_type": media_type, "data": image_bytes},
+    ])
+    return response.text
+
+
+async def chat(message: str, invoice: Invoice, history: list[ChatMessage]) -> dict:
+    invoice_json = invoice.model_dump_json(indent=2)
+    history_text = "\n".join(f"{m.role}: {m.content}" for m in history)
+
+    system_prompt = _CHAT_SYSTEM_PROMPT.format(
+        invoice_json=invoice_json,
+        chat_history=history_text,
+    )
+
+    model = _get_model("gemini-1.5-flash")
+    response = await model.generate_content_async([system_prompt, message])
+
+    raw = response.text.strip()
+    # Strip accidental markdown code fences
+    if raw.startswith("```"):
+        raw = raw.split("\n", 1)[-1]
+        if raw.endswith("```"):
+            raw = raw[:-3].strip()
+
+    return json.loads(raw)
