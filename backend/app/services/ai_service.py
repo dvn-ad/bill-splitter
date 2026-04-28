@@ -31,8 +31,9 @@ Return this exact schema:
 Rules:
 - Detect currency from symbols (Rp = IDR, $ = USD)
 - If tax or service charge is not present, use 0
-- All prices must be plain numbers, no currency symbols
-- Do not infer or guess items not visible in the image\
+- All prices must be plain numbers, no currency symbols or formatting
+- Do not infer or guess items not visible in the image
+- IDR values must be integers (no decimals)\
 """
 
 _CHAT_SYSTEM_PROMPT = """\
@@ -58,25 +59,31 @@ Use this exact schema:
 }}
 
 Supported operations:
-- split_equal         → divide total by N people
-- split_by_item       → assign specific items to specific people
-- exclude_item        → remove an item and recalculate total
-- exclude_charge      → remove tax or service_charge and recalculate
-- sum_category        → sum items matching a description (e.g. "drinks")
-- compare_amount      → compare a given amount against a split result
-- update_item_price   → correct a misread item price and recalculate
+- split_equal         → divide total by N people. variables: {"people": N}
+- split_by_item       → assign specific items to specific people. variables: {"item_assignments": {"Person": ["Item1", "Item2"]}}
+- exclude_item        → remove an item and recalculate total. variables: {"item_name": "string"}
+- exclude_charge      → remove tax or service_charge and recalculate. variables: {"charge_type": "tax"|"service_charge"}
+- sum_category        → sum items matching a description. variables: {"category": "string"}
+- update_item_price   → correct a misread item price and recalculate. variables: {"item_name": "string", "new_price": number}
+
+Rules for splitting:
+1. When splitting by item, always distribute tax and service charge PROPORTIONALLY based on each person's subtotal.
+2. If an item is shared (e.g. 2 people sharing 1 pizza), split the item's cost first, then apply proportional charges.
+3. All monetary values in the JSON result must be raw numbers. NEVER include currency symbols, thousands separators (dots/commas), or string formatting.
+4. For IDR, round results to the nearest integer. For USD, round to 2 decimal places.
 
 If the user's request is unclear, set operation to "clarify" and use the
-explanation field to ask a follow-up question.
-
-All monetary results must be in the same currency as the invoice.\
+explanation field to ask a follow-up question.\
 """
 
 
 def _get_model(name: str) -> genai.GenerativeModel:
     settings = get_settings()
     genai.configure(api_key=settings.GEMINI_API_KEY)
-    return genai.GenerativeModel(name)
+    return genai.GenerativeModel(
+        name,
+        generation_config={"response_mime_type": "application/json"}
+    )
 
 
 async def extract_invoice(image_base64: str, media_type: str) -> str:
@@ -101,11 +108,4 @@ async def chat(message: str, invoice: Invoice, history: list[ChatMessage]) -> di
     model = _get_model("gemini-2.5-flash-lite")
     response = await model.generate_content_async([system_prompt, message])
 
-    raw = response.text.strip()
-    # Strip accidental markdown code fences
-    if raw.startswith("```"):
-        raw = raw.split("\n", 1)[-1]
-        if raw.endswith("```"):
-            raw = raw[:-3].strip()
-
-    return json.loads(raw)
+    return json.loads(response.text)
