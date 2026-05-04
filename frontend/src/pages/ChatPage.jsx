@@ -10,6 +10,7 @@ export default function ChatPage() {
   const { logout } = useAuth();
   const { invoice, setInvoice, chatHistory, addMessage, updateInvoice } = useInvoice();
   const [busy, setBusy] = useState(false);
+  const [invoiceOpen, setInvoiceOpen] = useState(true);
 
   const handleUpload = async (base64, mediaType) => {
     setBusy(true);
@@ -61,8 +62,21 @@ export default function ChatPage() {
       </header>
 
       {invoice && (
-        <div className="px-4 pt-4">
-          <InvoiceTable invoice={invoice} />
+        <div className="px-4 pt-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Receipt</span>
+            <button
+              onClick={() => setInvoiceOpen(o => !o)}
+              className="text-xs text-blue-600 hover:underline"
+            >
+              {invoiceOpen ? "Hide" : "Show"}
+            </button>
+          </div>
+          {invoiceOpen && (
+            <div className="max-h-52 overflow-y-auto">
+              <InvoiceTable invoice={invoice} />
+            </div>
+          )}
         </div>
       )}
 
