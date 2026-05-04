@@ -1,6 +1,7 @@
 import base64
 import json
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from app.core.config import get_settings
 from app.models.invoice import Invoice
 from app.models.chat import ChatMessage
@@ -79,22 +80,26 @@ explanation field to ask a follow-up question.\
 """
 
 
-def _get_model(name: str) -> genai.GenerativeModel:
+def _get_client() -> genai.Client:
     settings = get_settings()
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-    return genai.GenerativeModel(
-        name,
-        generation_config={"response_mime_type": "application/json"}
-    )
+    return genai.Client(api_key=settings.GEMINI_API_KEY)
+
+
+_JSON_CONFIG = types.GenerateContentConfig(response_mime_type="application/json")
+_MODEL = "gemini-2.5-flash-lite"
 
 
 async def extract_invoice(image_base64: str, media_type: str) -> str:
-    model = _get_model("gemini-2.5-flash-lite")
+    client = _get_client()
     image_bytes = base64.b64decode(image_base64)
-    response = await model.generate_content_async([
-        _INVOICE_PARSING_PROMPT,
-        {"mime_type": media_type, "data": image_bytes},
-    ])
+    response = await client.aio.models.generate_content(
+        model=_MODEL,
+        contents=[
+            _INVOICE_PARSING_PROMPT,
+            types.Part.from_bytes(data=image_bytes, mime_type=media_type),
+        ],
+        config=_JSON_CONFIG,
+    )
     return response.text
 
 
@@ -107,7 +112,10 @@ async def chat(message: str, invoice: Invoice, history: list[ChatMessage]) -> di
         chat_history=history_text,
     )
 
-    model = _get_model("gemini-2.5-flash-lite")
-    response = await model.generate_content_async([system_prompt, message])
-
+    client = _get_client()
+    response = await client.aio.models.generate_content(
+        model=_MODEL,
+        contents=[system_prompt, message],
+        config=_JSON_CONFIG,
+    )
     return json.loads(response.text)
