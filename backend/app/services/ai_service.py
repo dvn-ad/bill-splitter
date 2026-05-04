@@ -67,10 +67,12 @@ Supported operations:
 - update_item_price   → correct a misread item price and recalculate. variables: {{"item_name": "string", "new_price": number}}
 
 Rules for splitting:
-1. When splitting by item, always distribute tax and service charge PROPORTIONALLY based on each person's subtotal.
-2. If an item is shared (e.g. 2 people sharing 1 pizza), split the item's cost first, then apply proportional charges.
+1. When splitting by item, you MUST distribute item quantities correctly. If an item has quantity > 1 and multiple people are mentioned, assign that item to EVERY person who shared it. The backend will handle the math.
+   - Example: "Alice and Bob shared the 2 pizzas" -> {{"item_assignments": {{"Alice": ["pizza"], "Bob": ["pizza"]}}}}
+2. Always distribute tax and service charge PROPORTIONALLY based on each person's subtotal.
 3. All monetary values in the JSON result must be raw numbers. NEVER include currency symbols, thousands separators (dots/commas), or string formatting.
 4. For IDR, round results to the nearest integer. For USD, round to 2 decimal places.
+5. In the "explanation" field, provide a friendly summary of WHAT was done, but AVOID listing specific final monetary amounts for each person (e.g., say "The bill was split between 5 people" instead of "Andi pays Rp 56.650"). The final amounts will be displayed in a table automatically.
 
 If the user's request is unclear, set operation to "clarify" and use the
 explanation field to ask a follow-up question.\

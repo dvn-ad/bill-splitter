@@ -17,7 +17,8 @@ class ChatRequest(BaseModel):
 class ActionResponse(BaseModel):
     operation: str
     variables: Dict[str, Any]
-    expression: str
+    # expression: str
+    expression: Optional[str] = None
     result: Any
     explanation: str
     updated_invoice: Optional[Invoice] = None

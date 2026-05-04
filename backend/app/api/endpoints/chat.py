@@ -23,18 +23,29 @@ async def chat_message(
         assignments = raw.get("variables", {}).get("item_assignments")
         if assignments:
             try:
-                raw["result"] = calculation_service.recalculate_split_by_item(
+                results = calculation_service.recalculate_split_by_item(
                     body.invoice, assignments
                 )
+                raw["result"] = results
+                
+                # Update explanation with the corrected numbers to avoid mismatch
+                currency = body.invoice.currency
+                summary = "\n".join([f"- {name}: {currency} {amount}" for name, amount in results.items()])
+                if "explanation" in raw:
+                    raw["explanation"] += f"\n\nRecalculated breakdown:\n{summary}"
             except Exception:
                 pass
     elif raw.get("operation") == "split_equal":
         people = raw.get("variables", {}).get("people")
         if people:
             try:
-                raw["result"] = calculation_service.recalculate_split_equal(
+                result = calculation_service.recalculate_split_equal(
                     body.invoice, int(people)
                 )
+                raw["result"] = result
+                currency = body.invoice.currency
+                if "explanation" in raw:
+                    raw["explanation"] += f"\n\nEach person pays: {currency} {result}"
             except Exception:
                 pass
 
