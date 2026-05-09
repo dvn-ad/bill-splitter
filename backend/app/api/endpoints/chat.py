@@ -31,8 +31,8 @@ async def chat_message(
                 # Update explanation with the corrected numbers to avoid mismatch
                 currency = body.invoice.currency
                 summary = "\n".join([f"- {name}: {currency} {amount}" for name, amount in results.items()])
-                if "explanation" in raw:
-                    raw["explanation"] += f"\n\nRecalculated breakdown:\n{summary}"
+                # if "explanation" in raw:
+                #     raw["explanation"] += f"\n\nRecalculated breakdown:\n{summary}"
             except Exception:
                 pass
     elif raw.get("operation") == "split_equal":
