@@ -15,10 +15,9 @@ class ChatRequest(BaseModel):
 
 
 class ActionResponse(BaseModel):
-    operation: str
-    variables: Dict[str, Any]
-    # expression: str
+    operation: Optional[str] = None
+    variables: Optional[Dict[str, Any]] = None
     expression: Optional[str] = None
-    result: Any
+    result: Optional[Any] = None
     explanation: str
     updated_invoice: Optional[Invoice] = None
