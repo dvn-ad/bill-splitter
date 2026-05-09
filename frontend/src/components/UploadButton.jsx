@@ -27,7 +27,7 @@ export default function UploadButton({ onUpload }) {
       <button
         type="button"
         onClick={() => inputRef.current.click()}
-        className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+        className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         title="Upload receipt"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

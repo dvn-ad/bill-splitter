@@ -5,7 +5,7 @@ function SplitTable({ result, currency }) {
     <table className="mt-2 text-xs border-collapse w-full">
       <tbody>
         {Object.entries(result).map(([person, amount]) => (
-          <tr key={person} className="border-b border-gray-200 last:border-0">
+          <tr key={person} className="border-b border-gray-200 dark:border-gray-500 last:border-0">
             <td className="pr-4 py-1 font-medium">{person}</td>
             <td className="py-1">{formatCurrency(amount, currency)}</td>
           </tr>
@@ -24,7 +24,7 @@ export default function ChatBubble({ role, content, operation, result, currency 
         className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl text-sm ${
           isUser
             ? "bg-blue-600 text-white rounded-br-sm"
-            : "bg-gray-100 text-gray-800 rounded-bl-sm"
+            : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-sm"
         }`}
       >
         <p className="whitespace-pre-wrap">{content}</p>
