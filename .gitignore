@@ -224,3 +224,4 @@ frontend/.env.local
 
 *.md
 !README.md
+!/docs/

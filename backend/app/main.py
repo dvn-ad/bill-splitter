@@ -24,3 +24,10 @@ app.add_middleware(
 )
 
 app.include_router(router)
+
+
+@app.on_event("startup")
+def on_startup():
+    from app.db.base import Base, engine
+    from app.db import models  # noqa: F401 — registers ORM models with Base
+    Base.metadata.create_all(bind=engine)

@@ -17,6 +17,9 @@ export const api = {
   parseInvoice: (image_base64, media_type) =>
     client.post("/invoice/parse", { image_base64, media_type }),
 
+  register: (username, password) =>
+    client.post("/auth/register", { username, password }),
+
   sendMessage: (message, invoice, history) =>
     client.post("/chat/message", { message, invoice, history }),
 };

@@ -6,3 +6,7 @@ python-jose[cryptography]
 python-multipart
 google-genai
 python-dotenv
+sqlalchemy
+psycopg2-binary
+bcrypt
+redis
