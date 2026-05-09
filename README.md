@@ -1,35 +1,18 @@
 # Bill Splitter
 
-A stateless web app where you log in, upload a receipt photo, and chat with an AI to split or analyze the bill.
+A stateless web app where you upload a receipt photo and chat with an AI to split or analyze the bill. Check out the live instance at [https://bill-splitter-three-brown.vercel.app/](https://bill-splitter-three-brown.vercel.app/).
 
 ---
 
-## Quick Start (Docker)
+## Usage
+1. Go to the live instance or run locally using Docker (see [GETTING_STARTED.md](docs/GETTING_STARTED.md)).
+2. Log in with the provided credentials.
+    | username | password  |
+    |:--:|:--:|
+    | admin | secret123 |
+3. Upload a receipt photo.
+4. Ask questions about the bill, like "Split the bill between Alice, Bob, and Charlie. Alice had the pasta, Bob had the pizza, and Charlie had the salad. How much does each person owe?"
 
-The easiest way to run the entire system (Frontend & Backend) is using Docker Compose.
+You can also ask to split the bill evenly, exclude tax and tip, or analyze the receipt for specific items.
 
-1.  **Prepare Backend Environment:**
-    Create a `.env` file in `backend/`:
-    ```env
-    APP_USERNAME=admin
-    APP_PASSWORD=secret123
-    JWT_SECRET=your-very-secure-secret
-    JWT_ALGORITHM=HS256
-    JWT_EXPIRE_MINUTES=60
-    GEMINI_API_KEY=your-gemini-api-key
-    ```
-
-2.  **Run with Docker:**
-    ```bash
-    docker-compose up --build
-    ```
-    - Frontend: `http://localhost`
-    - Backend API: `http://localhost:8000`
-
----
-
-## Deployed Login Credentials
-
-| username | password  |
-|:--:|:--:|
-| admin | secret123 |
+5. The AI will analyze the receipt and provide a breakdown of how much each person owes.

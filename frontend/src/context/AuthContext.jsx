@@ -1,15 +1,28 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { api } from "../services/api.js";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const login = (jwt) => setToken(jwt);
-  const logout = () => setToken(null);
+  useEffect(() => {
+    api.me()
+      .then(() => setIsLoggedIn(true))
+      .catch(() => setIsLoggedIn(false))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const login = () => setIsLoggedIn(true);
+
+  const logout = async () => {
+    await api.logout().catch(() => {});
+    setIsLoggedIn(false);
+  };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

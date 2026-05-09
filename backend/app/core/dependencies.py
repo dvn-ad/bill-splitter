@@ -1,15 +1,14 @@
-from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Cookie, HTTPException
 from jose import JWTError, jwt
 from app.core.config import get_settings
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-
-def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
+def get_current_user(access_token: str | None = Cookie(None)) -> str:
+    if access_token is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     settings = get_settings()
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(access_token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
         sub: str = payload.get("sub")
         if sub is None:
             raise HTTPException(status_code=401, detail="Invalid or expired token")

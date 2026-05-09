@@ -15,7 +15,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await api.login(username, password);
-      login(res.data.access_token);
+      login();
     } catch (err) {
       setError(
         err.response?.data?.detail ?? "Login failed. Please try again."

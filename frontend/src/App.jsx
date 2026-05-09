@@ -1,15 +1,11 @@
-import { useEffect } from "react";
 import { useAuth } from "./context/AuthContext.jsx";
-import { setTokenProvider } from "./services/api.js";
 import LoginPage from "./pages/LoginPage.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
 
 export default function App() {
-  const { token } = useAuth();
+  const { isLoggedIn, loading } = useAuth();
 
-  useEffect(() => {
-    setTokenProvider(() => token);
-  }, [token]);
+  if (loading) return null;
 
-  return token ? <ChatPage /> : <LoginPage />;
+  return isLoggedIn ? <ChatPage /> : <LoginPage />;
 }
