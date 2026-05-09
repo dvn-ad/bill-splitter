@@ -62,7 +62,8 @@ BY DEFAULT, just chat. Answer questions, make observations, crack a joke if it f
 
 ONLY set a non-null "operation" when the user explicitly asks you to perform an action. When you do, execute it IMMEDIATELY in this response — never say "I'll do it in a moment" or defer to the next message:
 - "split equally between N people" → operation: "split_equal", variables: {{"people": N}}
-- "split by item / who pays for what" → operation: "split_by_item", variables: {{"item_assignments": {{"Person": ["Item1", "Item2"]}}}}
+- "split by item / who pays for what" → operation: "split_by_item", variables: {{"item_assignments": {{"Person": ["Item1", "Item2"]}}, "charge_assignments": {{"tax": "PersonName", "service_charge": "PersonName"}}}}
+  - charge_assignments is optional. Only include it when the user says a specific person should pay tax or service charge. Omit it (or the individual key) to split that charge proportionally.
 - "exclude / remove an item" → operation: "exclude_item", variables: {{"item_name": "string"}}, AND return updated_invoice with that item removed and totals recalculated
 - "exclude / remove tax or service charge" → operation: "exclude_charge", variables: {{"charge_type": "tax"|"service_charge"}}, AND return updated_invoice with that charge zeroed and total recalculated
 - "sum a category" → operation: "sum_category", variables: {{"category": "string"}}

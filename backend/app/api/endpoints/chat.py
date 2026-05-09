@@ -23,8 +23,9 @@ async def chat_message(
         assignments = raw.get("variables", {}).get("item_assignments")
         if assignments:
             try:
+                charge_assignments = raw.get("variables", {}).get("charge_assignments")
                 results = calculation_service.recalculate_split_by_item(
-                    body.invoice, assignments
+                    body.invoice, assignments, charge_assignments
                 )
                 raw["result"] = results
                 
