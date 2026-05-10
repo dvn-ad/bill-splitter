@@ -28,13 +28,13 @@ export default function ChatInput({ onSend, onUpload, disabled }) {
 
   return (
     <div className="flex-none bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-4 md:p-6 transition-colors duration-300">
-      <div className="max-w-4xl mx-auto flex items-end gap-3 bg-gray-50 dark:bg-gray-800 p-2 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all">
+      <div className="max-w-4xl mx-auto flex items-end gap-3 bg-gray-50 dark:bg-gray-800 p-2 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all">
         <UploadButton onUpload={onUpload} />
         
         <textarea
           ref={textareaRef}
           rows={1}
-          className="flex-1 bg-transparent border-none focus:ring-0 text-sm md:text-base text-gray-800 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 py-2 px-1 max-h-40 overflow-y-auto resize-none"
+          className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none text-sm md:text-base text-gray-800 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 py-2 px-1 max-h-40 overflow-y-auto resize-none"
           placeholder="Ask a question about your bill..."
           value={text}
           onChange={(e) => setText(e.target.value)}
