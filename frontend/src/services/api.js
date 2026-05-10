@@ -2,14 +2,31 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-const client = axios.create({ baseURL: BASE_URL, withCredentials: true });
+const client = axios.create({ baseURL: BASE_URL });
+
+// Add interceptor to include the token in every request
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export const api = {
-  login: (username, password) =>
-    client.post("/auth/login", { username, password }),
+  login: async (username, password) => {
+    const res = await client.post("/auth/login", { username, password });
+    if (res.data.access_token) {
+      localStorage.setItem("token", res.data.access_token);
+    }
+    return res;
+  },
 
-  logout: () =>
-    client.post("/auth/logout"),
+  logout: async () => {
+    const res = await client.post("/auth/logout").catch(() => ({}));
+    localStorage.removeItem("token");
+    return res;
+  },
 
   me: () =>
     client.get("/auth/me"),
