@@ -1,14 +1,26 @@
 import { formatCurrency } from "../utils/currency.js";
 
-function SplitTable({ result, currency }) {
+function SplitTable({ result, currency, isUser }) {
+  // If inside a user bubble (indigo bg), we want white text.
+  // If inside assistant bubble (white bg in light, gray bg in dark), we want gray-900 in light, white in dark.
   return (
-    <div className="mt-4 overflow-hidden rounded-xl border border-white/20 bg-white/10 dark:bg-black/20 backdrop-blur-sm">
+    <div className={`mt-4 overflow-hidden rounded-xl border transition-colors duration-300 ${
+      isUser 
+        ? "border-white/20 bg-white/10" 
+        : "border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-black/20"
+    }`}>
       <table className="w-full text-xs border-collapse">
-        <tbody className="divide-y divide-white/10">
+        <tbody className={`divide-y ${isUser ? "divide-white/10" : "divide-gray-200 dark:divide-white/10"}`}>
           {Object.entries(result).map(([person, amount]) => (
             <tr key={person} className="transition-colors hover:bg-white/5">
-              <td className="px-3 py-2 font-semibold text-white/90 uppercase tracking-tight">{person}</td>
-              <td className="px-3 py-2 text-right font-mono font-bold text-white">
+              <td className={`px-3 py-2 font-semibold uppercase tracking-tight ${
+                isUser ? "text-white/90" : "text-gray-600 dark:text-white/90"
+              }`}>
+                {person}
+              </td>
+              <td className={`px-3 py-2 text-right font-mono font-bold ${
+                isUser ? "text-white" : "text-gray-900 dark:text-white"
+              }`}>
                 {formatCurrency(amount, currency)}
               </td>
             </tr>
@@ -45,9 +57,7 @@ export default function ChatBubble({ role, content, operation, result, currency 
           </p>
 
           {operation === "split_by_item" && result && typeof result === "object" && !Array.isArray(result) && (
-            <div className={isUser ? "" : "text-white"}>
-               <SplitTable result={result} currency={currency} />
-            </div>
+            <SplitTable result={result} currency={currency} isUser={isUser} />
           )}
         </div>
         {isUser && (
