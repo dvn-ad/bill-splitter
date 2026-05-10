@@ -31,8 +31,8 @@ def login(body: LoginRequest, response: Response, db: Session = Depends(get_db))
         key="access_token",
         value=token,
         httponly=True,
-        samesite="none",
-        secure=True,
+        samesite="lax",
+        secure=False,
         path="/",
     )
     return {"message": "ok"}
@@ -54,7 +54,7 @@ def logout(response: Response, access_token: str | None = Cookie(None)):
                     blacklist_token(jti, ttl)
         except JWTError:
             pass
-    response.delete_cookie(key="access_token", path="/", samesite="none", secure=True)
+    response.delete_cookie(key="access_token", path="/", samesite="lax", secure=False)
     return {"message": "ok"}
 
 
