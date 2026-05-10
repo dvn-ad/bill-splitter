@@ -1,21 +1,6 @@
 import { useState } from "react";
 import { api } from "../services/api.js";
-
-function MoonIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-    </svg>
-  );
-}
-
-function SunIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m0 13.5V21m8.905-8.905h-2.25M5.25 12h-2.25m13.364-7.364l-1.591 1.591M6.75 17.25l-1.591 1.591m12.728 0l-1.591-1.591M6.75 6.75L5.159 5.159M9 12a3 3 0 116 0 3 3 0 01-6 0z" />
-    </svg>
-  );
-}
+import { Sun, Moon } from "lucide-react";
 
 export default function RegisterPage({ onSwitch, dark, onToggleDark }) {
   const [username, setUsername] = useState("");
@@ -56,14 +41,11 @@ export default function RegisterPage({ onSwitch, dark, onToggleDark }) {
         className="absolute top-6 right-6 p-2 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 shadow-sm transition-all active:scale-95 z-10"
         title={dark ? "Switch to light mode" : "Switch to dark mode"}
       >
-        {dark ? <SunIcon /> : <MoonIcon />}
+        {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
       </button>
 
       <div className="w-full max-w-md z-10">
         <div className="flex flex-col items-center mb-10">
-          <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-4xl shadow-2xl shadow-indigo-500/40 mb-4">
-            B
-          </div>
           <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight text-center">
             Create Account
           </h1>
