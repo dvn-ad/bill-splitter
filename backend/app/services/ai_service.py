@@ -6,35 +6,71 @@ from app.core.config import get_settings
 from app.models.invoice import Invoice
 from app.models.chat import ChatMessage
 
+# _INVOICE_PARSING_PROMPT = """\
+# You are an invoice data extractor.
+
+# Extract the following from the receipt image and return ONLY valid JSON.
+# No explanation, no markdown, no backticks.
+
+# Return this exact schema:
+# {
+#   "currency": "IDR" or "USD",
+#   "subtotal": <number>,
+#   "tax": <number or 0>,
+#   "service_charge": <number or 0>,
+#   "total": <number>,
+#   "items": [
+#     {
+#       "name": <string>,
+#       "price": <unit price as number>,
+#       "quantity": <integer>,
+#       "subtotal": <price * quantity>
+#     }
+#   ]
+# }
+
+# Rules:
+# - Detect currency from symbols (Rp = IDR, $ = USD)
+# - If tax or service charge is not present, use 0
+# - All prices must be plain numbers, no currency symbols or formatting
+# - Do not infer or guess items not visible in the image
+# - IDR values must be integers (no decimals)\
+# """
+
 _INVOICE_PARSING_PROMPT = """\
-You are an invoice data extractor.
+You are an expert OCR invoice parser. Your goal is to extract structured data from receipt images with 100% mathematical accuracy.
 
-Extract the following from the receipt image and return ONLY valid JSON.
-No explanation, no markdown, no backticks.
+Extraction Rules:
+1. Layout Detection: This receipt follows the format: `[Quantity] [Item Name] [Line Total]`.
+2. Price Calculation: The number on the right is the Line Total (Price x Quantity). You MUST calculate the unit price by dividing the Line Total by the Quantity. 
+   - Formula: `price = line_total / quantity`.
+3. Stop Sequence: Stop extracting items once you hit "Subtotal", "Pb1", "Tax", or "Total". Do NOT include these as items.
+4. Currency: Detect from symbols (Rp = IDR, $ = USD). If no symbol, use context (e.g., Indonesian restaurant names = IDR).
+5. Data Integrity: 
+   - IDR values must be integers (round if necessary).
+   - USD values must have 2 decimal places.
+   - If Tax or Service Charge aren't explicitly listed, use 0.
+   - Pb1 is a type of tax. If you see it, include it in the tax field and do not add an additional tax of 0.
 
-Return this exact schema:
+Return ONLY valid JSON (no markdown, no backticks):
 {
-  "currency": "IDR" or "USD",
+  "currency": "IDR" | "USD",
   "subtotal": <number>,
-  "tax": <number or 0>,
-  "service_charge": <number or 0>,
+  "tax": <number>,
+  "service_charge": <number>,
   "total": <number>,
   "items": [
     {
-      "name": <string>,
-      "price": <unit price as number>,
+      "name": "string",
+      "price": <calculated unit price>,
       "quantity": <integer>,
-      "subtotal": <price * quantity>
+      "subtotal": <the Line Total found on the receipt>
     }
   ]
 }
 
-Rules:
-- Detect currency from symbols (Rp = IDR, $ = USD)
-- If tax or service charge is not present, use 0
-- All prices must be plain numbers, no currency symbols or formatting
-- Do not infer or guess items not visible in the image
-- IDR values must be integers (no decimals)\
+Validation Step:
+Ensure that the sum of all item `subtotal` fields equals the main `subtotal` field exactly. If they don't match, re-read the numbers.\
 """
 
 _CHAT_SYSTEM_PROMPT = """\
@@ -73,7 +109,8 @@ Rules that apply when an operation IS triggered:
 1. split_by_item: if an item has quantity > 1 and multiple people shared it, assign it to EVERY one of them — the backend handles the math. Example: "Alice and Bob shared the 2 pizzas" → {{"item_assignments": {{"Alice": ["pizza"], "Bob": ["pizza"]}}}}
 2. Always distribute tax and service charge PROPORTIONALLY based on each person's subtotal.
 3. All monetary values must be raw numbers — no currency symbols, no thousands separators.
-4. IDR: round to nearest integer. USD: round to 2 decimal places.\
+4. IDR: round to nearest integer. USD: round to 2 decimal places.
+5. split_by_item ONLY: do NOT include specific monetary amounts in "explanation" — the UI already renders an authoritative table. Keep "explanation" conversational (e.g. "Done! Here's how it breaks down." or a witty one-liner).\
 """
 
 
