@@ -224,4 +224,5 @@ frontend/.env.local
 
 *.md
 !README.md
-!/docs/
+!GETTING_STARTED.md
+.code-workspace

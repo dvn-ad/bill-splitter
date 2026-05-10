@@ -1,18 +1,38 @@
 # Bill Splitter
 
-A stateless web app where you upload a receipt photo and chat with an AI to split or analyze the bill. Check out the live instance at [https://bill-splitter-three-brown.vercel.app/](https://bill-splitter-three-brown.vercel.app/).
+A stateless web app that lets you upload a receipt photo and chat with an AI to split or analyze the bill.
+
+**Live demo:** [bill-splitter-three-brown.vercel.app](https://bill-splitter-three-brown.vercel.app/)
 
 ---
 
-## Usage
-1. Go to the live instance or run locally using Docker (see [GETTING_STARTED.md](docs/GETTING_STARTED.md)).
-2. Log in with the provided credentials.
-    | username | password  |
-    |:--:|:--:|
-    | admin | secret123 |
-3. Upload a receipt photo.
-4. Ask questions about the bill, like "Split the bill between Alice, Bob, and Charlie. Alice had the pasta, Bob had the pizza, and Charlie had the salad. How much does each person owe?"
+## How it works
 
-You can also ask to split the bill evenly, exclude tax and tip, or analyze the receipt for specific items.
+1. Log in or sign up for an account.
+2. Upload a photo of your receipt (or use our sample receipt [here](./receipts/)) and let the AI extract the line items and total.
 
-5. The AI will analyze the receipt and provide a breakdown of how much each person owes.
+3. Tell the AI who ordered what and it calculates each person's share.
+
+**Example prompts**
+- *"Split by item — Alice had the pasta, Bob had the pizza, Charlie had the salad."*
+- *"Split the bill equally between 4 people."*
+- *"Remove the service charge."*
+- *"How much did we spend on drinks?"*
+
+---
+
+## Running locally
+
+See [GETTING_STARTED.md](./GETTING_STARTED.md) for Docker and manual setup instructions.
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React, TailwindCSS, Vite |
+| Backend | FastAPI, Python |
+| AI | Google Gemini 2.5 Flash Lite (vision + chat) |
+| Auth | JWT, bcrypt password hashing, Redis token blacklist |
+| Database | PostgreSQL (Supabase) |
