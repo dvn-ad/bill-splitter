@@ -61,9 +61,6 @@ export default function RegisterPage({ onSwitch, dark, onToggleDark }) {
 
       <div className="w-full max-w-md z-10">
         <div className="flex flex-col items-center mb-10">
-          <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-4xl shadow-2xl shadow-indigo-500/40 mb-4">
-            B
-          </div>
           <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight text-center">
             Create Account
           </h1>

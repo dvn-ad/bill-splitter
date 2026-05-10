@@ -50,9 +50,11 @@ export default function ChatBubble({ role, content, operation, result, currency 
             </div>
           )}
         </div>
-        <span className="text-[10px] mt-1 px-1 font-medium text-gray-400 dark:text-gray-600 uppercase">
-          {isUser ? "You" : "Gemini"}
-        </span>
+        {isUser && (
+          <span className="text-[10px] mt-1 px-1 font-medium text-gray-400 dark:text-gray-600 uppercase">
+            You
+          </span>
+        )}
       </div>
     </div>
   );

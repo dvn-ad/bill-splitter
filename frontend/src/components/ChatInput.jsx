@@ -53,9 +53,6 @@ export default function ChatInput({ onSend, onUpload, disabled }) {
           </svg>
         </button>
       </div>
-      <p className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-3 font-medium uppercase tracking-widest">
-        Bill Splitter is powered by Gemini AI. Check important info for accuracy.
-      </p>
     </div>
   );
 }
