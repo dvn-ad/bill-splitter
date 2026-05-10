@@ -225,4 +225,4 @@ frontend/.env.local
 *.md
 !README.md
 !GETTING_STARTED.md
-.code-workspace
+*.code-workspace
