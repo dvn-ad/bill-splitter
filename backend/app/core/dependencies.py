@@ -1,21 +1,31 @@
-from fastapi import Cookie, HTTPException
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from app.core.config import get_settings
 from app.services.redis_service import is_blacklisted
 
+security = HTTPBearer()
 
-def get_current_user(access_token: str | None = Cookie(None)) -> str:
-    if access_token is None:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    access_token = credentials.credentials
     settings = get_settings()
     try:
         payload = jwt.decode(access_token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
         sub: str = payload.get("sub")
         jti: str = payload.get("jti")
         if sub is None:
-            raise HTTPException(status_code=401, detail="Invalid or expired token")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired token"
+            )
         if jti and is_blacklisted(jti):
-            raise HTTPException(status_code=401, detail="Token has been revoked")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has been revoked"
+            )
         return sub
     except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )

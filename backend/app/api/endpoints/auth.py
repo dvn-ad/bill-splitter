@@ -1,14 +1,15 @@
 from datetime import datetime, timezone
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from app.models.auth import LoginRequest, RegisterRequest
 from app.core.config import get_settings
 from app.core.security import create_access_token
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, security
 from app.db.base import get_db
 from app.services.user_service import create_user, get_user, verify_password
 from app.services.redis_service import blacklist_token
+from fastapi.security import HTTPAuthorizationCredentials
 
 router = APIRouter()
 
@@ -22,24 +23,21 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login(body: LoginRequest, response: Response, db: Session = Depends(get_db)):
+def login(body: LoginRequest, db: Session = Depends(get_db)):
     user = get_user(db, body.username)
     if not user or not verify_password(body.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_access_token({"sub": user.username})
-    response.set_cookie(
-        key="access_token",
-        value=token,
-        httponly=True,
-        samesite="none",
-        secure=True,
-        path="/",
-    )
-    return {"message": "ok"}
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "username": user.username
+    }
 
 
 @router.post("/logout")
-def logout(response: Response, access_token: str | None = Cookie(None)):
+def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    access_token = credentials.credentials
     if access_token:
         settings = get_settings()
         try:
@@ -54,7 +52,6 @@ def logout(response: Response, access_token: str | None = Cookie(None)):
                     blacklist_token(jti, ttl)
         except JWTError:
             pass
-    response.delete_cookie(key="access_token", path="/", samesite="none", secure=True)
     return {"message": "ok"}
 
 
