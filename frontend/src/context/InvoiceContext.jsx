@@ -4,6 +4,7 @@ const InvoiceContext = createContext(null);
 
 export function InvoiceProvider({ children }) {
   const [invoice, setInvoice] = useState(null);
+  const [activeInvoiceId, setActiveInvoiceId] = useState(null);
   const [chatHistory, setChatHistory] = useState([]);
 
   const addMessage = (role, content, operation = null, result = null) => {
@@ -14,7 +15,16 @@ export function InvoiceProvider({ children }) {
 
   return (
     <InvoiceContext.Provider
-      value={{ invoice, setInvoice, chatHistory, addMessage, updateInvoice }}
+      value={{
+        invoice,
+        setInvoice,
+        activeInvoiceId,
+        setActiveInvoiceId,
+        chatHistory,
+        setChatHistory,
+        addMessage,
+        updateInvoice,
+      }}
     >
       {children}
     </InvoiceContext.Provider>
@@ -24,3 +34,4 @@ export function InvoiceProvider({ children }) {
 export function useInvoice() {
   return useContext(InvoiceContext);
 }
+

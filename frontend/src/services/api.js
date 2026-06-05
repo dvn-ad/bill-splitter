@@ -37,6 +37,13 @@ export const api = {
   register: (username, password) =>
     client.post("/auth/register", { username, password }),
 
-  sendMessage: (message, invoice, history) =>
-    client.post("/chat/message", { message, invoice, history }),
+  sendMessage: (message, invoice, history, invoice_id) =>
+    client.post("/chat/message", { message, invoice, history, invoice_id }),
+
+  getInvoices: () =>
+    client.get("/invoice"),
+
+  deleteInvoice: (id) =>
+    client.delete(`/invoice/${id}`),
 };
+

@@ -1,5 +1,6 @@
-from typing import List, Literal
+from typing import List, Literal, Any, Dict
 from pydantic import BaseModel
+from datetime import datetime
 
 
 class InvoiceItem(BaseModel):
@@ -16,3 +17,15 @@ class Invoice(BaseModel):
     service_charge: float
     total: float
     items: List[InvoiceItem]
+
+
+class SavedInvoiceResponse(BaseModel):
+    id: int
+    name: str
+    invoice_data: Invoice
+    chat_history: List[Dict[str, Any]]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+

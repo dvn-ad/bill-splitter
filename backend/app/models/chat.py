@@ -12,6 +12,8 @@ class ChatRequest(BaseModel):
     message: str
     invoice: Invoice
     history: List[ChatMessage]
+    invoice_id: Optional[int] = None
+
 
 
 class ActionResponse(BaseModel):

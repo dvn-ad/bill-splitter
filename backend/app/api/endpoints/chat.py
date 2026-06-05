@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import ValidationError
+from sqlalchemy.orm import Session
 from app.models.chat import ChatRequest, ActionResponse
 from app.core.dependencies import get_current_user
-from app.services import ai_service, calculation_service
+from app.db.base import get_db
+from app.db.models import SavedInvoice
+from app.services import ai_service, calculation_service, user_service
 
 router = APIRouter()
 
@@ -11,6 +14,7 @@ router = APIRouter()
 async def chat_message(
     body: ChatRequest,
     current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     raw = await ai_service.chat(
         message=body.message,
@@ -66,7 +70,42 @@ async def chat_message(
         except Exception:
             pass
 
+    # Save changes to DB if invoice_id is provided
+    if body.invoice_id:
+        user = user_service.get_user(db, current_user)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        saved_invoice = (
+            db.query(SavedInvoice)
+            .filter(SavedInvoice.id == body.invoice_id, SavedInvoice.user_id == user.id)
+            .first()
+        )
+        if saved_invoice:
+            # Sync invoice data
+            if raw.get("updated_invoice"):
+                saved_invoice.invoice_data = raw["updated_invoice"]
+            else:
+                saved_invoice.invoice_data = body.invoice.dict()
+            
+            # Sync chat history
+            new_history = [h.dict() for h in body.history]
+            new_history.append({"role": "user", "content": body.message, "operation": None, "result": None})
+            new_history.append({
+                "role": "assistant",
+                "content": raw.get("explanation"),
+                "operation": raw.get("operation"),
+                "result": raw.get("result")
+            })
+            saved_invoice.chat_history = new_history
+            
+            db.add(saved_invoice)
+            db.commit()
+
     try:
         return ActionResponse(**raw)
     except (ValidationError, Exception):
         raise HTTPException(status_code=422, detail="Invalid response from AI")
+
