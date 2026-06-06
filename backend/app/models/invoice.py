@@ -25,6 +25,7 @@ class SavedInvoiceResponse(BaseModel):
     invoice_data: Invoice
     chat_history: List[Dict[str, Any]]
     split_data: Optional[Dict[str, Any]] = None
+    image_url: Optional[str] = None
     created_at: datetime
 
     class Config:

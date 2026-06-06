@@ -6,7 +6,7 @@ import ChatWindow from "../components/ChatWindow.jsx";
 import ChatInput from "../components/ChatInput.jsx";
 import InvoiceTable from "../components/InvoiceTable.jsx";
 import SplitBreakdown from "../components/SplitBreakdown.jsx";
-import { Sun, Moon, Receipt, MessageSquare, History, Trash2 } from "lucide-react";
+import { Sun, Moon, Receipt, MessageSquare, History, Trash2, Eye, X } from "lucide-react";
 
 
 export default function ChatPage({ dark, onToggleDark }) {
@@ -22,12 +22,15 @@ export default function ChatPage({ dark, onToggleDark }) {
     updateInvoice,
     splitData,
     setSplitData,
+    imageUrl,
+    setImageUrl,
   } = useInvoice();
 
   const [busy, setBusy] = useState(false);
   const [activeTab, setActiveTab] = useState("chat"); // 'chat', 'invoice', or 'history'
   const [sidebarTab, setSidebarTab] = useState("receipt"); // 'receipt' or 'history'
   const [savedInvoices, setSavedInvoices] = useState([]);
+  const [showLightbox, setShowLightbox] = useState(false);
 
   const fetchSavedInvoices = async (currActiveId = null) => {
     try {
@@ -42,6 +45,7 @@ export default function ChatPage({ dark, onToggleDark }) {
           setInvoice(active.invoice_data);
           setChatHistory(active.chat_history);
           setSplitData(active.split_data || null);
+          setImageUrl(active.image_url || null);
         }
       }
     } catch (err) {
@@ -63,6 +67,7 @@ export default function ChatPage({ dark, onToggleDark }) {
       setActiveInvoiceId(saved.id);
       setChatHistory(saved.chat_history);
       setSplitData(saved.split_data || null);
+      setImageUrl(saved.image_url || null);
 
       setSidebarTab("receipt");
       setActiveTab("invoice");
@@ -105,6 +110,7 @@ export default function ChatPage({ dark, onToggleDark }) {
     setActiveInvoiceId(savedInvoice.id);
     setChatHistory(savedInvoice.chat_history);
     setSplitData(savedInvoice.split_data || null);
+    setImageUrl(savedInvoice.image_url || null);
     setSidebarTab("receipt");
     setActiveTab("chat");
   };
@@ -224,6 +230,21 @@ export default function ChatPage({ dark, onToggleDark }) {
                       Loaded
                     </span>
                   </div>
+                  {imageUrl && (
+                    <div 
+                      onClick={() => setShowLightbox(true)}
+                      className="relative group overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer aspect-[16/9] w-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center"
+                    >
+                      <img 
+                        src={imageUrl} 
+                        alt="Receipt Thumbnail" 
+                        className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105" 
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300 text-white font-semibold text-xs gap-1.5">
+                        <Eye className="w-4 h-4" /> View Full Receipt
+                      </div>
+                    </div>
+                  )}
                   <InvoiceTable invoice={invoice} />
                   <SplitBreakdown splitData={splitData} currency={invoice.currency} />
                 </div>
@@ -316,6 +337,32 @@ export default function ChatPage({ dark, onToggleDark }) {
           <ChatInput onSend={handleSend} onUpload={handleUpload} disabled={busy} />
         </div>
       </main>
+
+      {/* Lightbox Modal */}
+      {showLightbox && imageUrl && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-200" 
+          onClick={() => setShowLightbox(false)}
+        >
+          <button 
+            className="absolute top-4 right-4 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            onClick={() => setShowLightbox(false)}
+            aria-label="Close Preview"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <div 
+            className="max-w-full max-h-[90vh] overflow-hidden flex items-center justify-center rounded-lg shadow-2xl relative" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img 
+              src={imageUrl} 
+              alt="Full Receipt" 
+              className="max-w-full max-h-[85vh] object-contain rounded-lg border border-white/10" 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

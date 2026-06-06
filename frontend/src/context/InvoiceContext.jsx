@@ -7,6 +7,7 @@ export function InvoiceProvider({ children }) {
   const [activeInvoiceId, setActiveInvoiceId] = useState(null);
   const [chatHistory, setChatHistory] = useState([]);
   const [splitData, setSplitData] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
 
   const addMessage = (role, content, operation = null, result = null) => {
     setChatHistory((prev) => [...prev, { role, content, operation, result }]);
@@ -27,6 +28,8 @@ export function InvoiceProvider({ children }) {
         updateInvoice,
         splitData,
         setSplitData,
+        imageUrl,
+        setImageUrl,
       }}
     >
       {children}

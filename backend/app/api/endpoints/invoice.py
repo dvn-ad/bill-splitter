@@ -7,7 +7,7 @@ from app.models.invoice import Invoice, SavedInvoiceResponse
 from app.core.dependencies import get_current_user
 from app.db.base import get_db
 from app.db.models import SavedInvoice
-from app.services import ai_service, parser_service, user_service
+from app.services import ai_service, parser_service, user_service, supabase_storage_service
 
 router = APIRouter()
 
@@ -40,6 +40,9 @@ async def parse_invoice(
         amount_str = f"${invoice.total:.2f}"
     invoice_name = f"Invoice - {datetime.now().strftime('%b %d, %H:%M')} ({amount_str})"
 
+    # Upload image to Supabase Storage
+    image_url = await supabase_storage_service.upload_image_base64(body.image_base64, body.media_type)
+
     # Save to database
     welcome_message = {
         "role": "assistant",
@@ -52,6 +55,7 @@ async def parse_invoice(
         name=invoice_name,
         invoice_data=invoice.dict(),
         chat_history=[welcome_message],
+        image_url=image_url,
     )
     db.add(db_invoice)
     db.commit()

@@ -35,11 +35,12 @@ def on_startup():
     from app.db import models  # noqa: F401 — registers ORM models with Base
     Base.metadata.create_all(bind=engine)
     
-    # Run a raw SQL command to add split_data column if it doesn't exist (Supabase Postgres helper)
+    # Run a raw SQL command to add split_data and image_url columns if they don't exist
     from sqlalchemy import text
     try:
         with engine.begin() as conn:
             conn.execute(text("ALTER TABLE saved_invoices ADD COLUMN IF NOT EXISTS split_data JSON;"))
+            conn.execute(text("ALTER TABLE saved_invoices ADD COLUMN IF NOT EXISTS image_url VARCHAR;"))
     except Exception as e:
-        print(f"Database schema update split_data skipped or failed: {e}")
+        print(f"Database schema update split_data / image_url skipped or failed: {e}")
 
