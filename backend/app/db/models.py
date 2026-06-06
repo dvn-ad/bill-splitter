@@ -22,6 +22,7 @@ class SavedInvoice(Base):
     name = Column(String, nullable=False)
     invoice_data = Column(JSON, nullable=False)
     chat_history = Column(JSON, nullable=False)
+    split_data = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="saved_invoices")

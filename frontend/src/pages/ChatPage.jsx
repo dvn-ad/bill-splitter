@@ -5,6 +5,7 @@ import { api } from "../services/api.js";
 import ChatWindow from "../components/ChatWindow.jsx";
 import ChatInput from "../components/ChatInput.jsx";
 import InvoiceTable from "../components/InvoiceTable.jsx";
+import SplitBreakdown from "../components/SplitBreakdown.jsx";
 import { Sun, Moon, Receipt, MessageSquare, History, Trash2 } from "lucide-react";
 
 
@@ -19,6 +20,8 @@ export default function ChatPage({ dark, onToggleDark }) {
     setChatHistory,
     addMessage,
     updateInvoice,
+    splitData,
+    setSplitData,
   } = useInvoice();
 
   const [busy, setBusy] = useState(false);
@@ -26,10 +29,21 @@ export default function ChatPage({ dark, onToggleDark }) {
   const [sidebarTab, setSidebarTab] = useState("receipt"); // 'receipt' or 'history'
   const [savedInvoices, setSavedInvoices] = useState([]);
 
-  const fetchSavedInvoices = async () => {
+  const fetchSavedInvoices = async (currActiveId = null) => {
     try {
       const res = await api.getInvoices();
-      setSavedInvoices(res.data);
+      const list = res.data;
+      setSavedInvoices(list);
+      
+      const targetId = currActiveId || activeInvoiceId;
+      if (targetId) {
+        const active = list.find((inv) => inv.id === targetId);
+        if (active) {
+          setInvoice(active.invoice_data);
+          setChatHistory(active.chat_history);
+          setSplitData(active.split_data || null);
+        }
+      }
     } catch (err) {
       console.error("Failed to fetch saved invoices", err);
     }
@@ -48,10 +62,11 @@ export default function ChatPage({ dark, onToggleDark }) {
       setInvoice(saved.invoice_data);
       setActiveInvoiceId(saved.id);
       setChatHistory(saved.chat_history);
+      setSplitData(saved.split_data || null);
 
       setSidebarTab("receipt");
       setActiveTab("invoice");
-      fetchSavedInvoices();
+      fetchSavedInvoices(saved.id);
     } catch (err) {
       const detail = err.response?.data?.detail ?? "Could not read the image. Please try a clearer photo.";
       addMessage("assistant", `Error: ${detail}`);
@@ -76,6 +91,7 @@ export default function ChatPage({ dark, onToggleDark }) {
       if (data.updated_invoice) {
         updateInvoice(data.updated_invoice);
       }
+      await fetchSavedInvoices(activeInvoiceId);
     } catch (err) {
       const detail = err.response?.data?.detail ?? "Something went wrong. Please try again.";
       addMessage("assistant", `Error: ${detail}`);
@@ -88,6 +104,7 @@ export default function ChatPage({ dark, onToggleDark }) {
     setInvoice(savedInvoice.invoice_data);
     setActiveInvoiceId(savedInvoice.id);
     setChatHistory(savedInvoice.chat_history);
+    setSplitData(savedInvoice.split_data || null);
     setSidebarTab("receipt");
     setActiveTab("chat");
   };
@@ -208,6 +225,7 @@ export default function ChatPage({ dark, onToggleDark }) {
                     </span>
                   </div>
                   <InvoiceTable invoice={invoice} />
+                  <SplitBreakdown splitData={splitData} currency={invoice.currency} />
                 </div>
               ) : (
                 <div className="h-full min-h-[300px] flex flex-col items-center justify-center p-8 text-center space-y-4">

@@ -1,4 +1,4 @@
-from typing import List, Literal, Any, Dict
+from typing import List, Literal, Any, Dict, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -24,6 +24,7 @@ class SavedInvoiceResponse(BaseModel):
     name: str
     invoice_data: Invoice
     chat_history: List[Dict[str, Any]]
+    split_data: Optional[Dict[str, Any]] = None
     created_at: datetime
 
     class Config:

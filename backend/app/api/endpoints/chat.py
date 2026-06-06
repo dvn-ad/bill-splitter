@@ -84,9 +84,74 @@ async def chat_message(
             .first()
         )
         if saved_invoice:
+            # Save split data if this is a split operation
+            if raw.get("operation") in ("split_by_item", "split_equal") and raw.get("result") is not None:
+                saved_invoice.split_data = {
+                    "operation": raw["operation"],
+                    "variables": raw.get("variables", {}),
+                    "result": raw["result"]
+                }
+            
+            # Recalculate split if split_data exists and invoice is updated
+            if raw.get("updated_invoice") and saved_invoice.split_data:
+                try:
+                    from app.models.invoice import Invoice
+                    updated_invoice_obj = Invoice(**raw["updated_invoice"])
+                    
+                    split_op = saved_invoice.split_data.get("operation")
+                    split_vars = saved_invoice.split_data.get("variables", {})
+                    
+                    if split_op == "split_by_item":
+                        assignments = split_vars.get("item_assignments")
+                        if assignments:
+                            charge_assignments = split_vars.get("charge_assignments")
+                            new_result = calculation_service.recalculate_split_by_item(
+                                updated_invoice_obj, assignments, charge_assignments
+                            )
+                            saved_invoice.split_data = {
+                                "operation": split_op,
+                                "variables": split_vars,
+                                "result": new_result
+                            }
+                            # Append updated summary to explanation
+                            currency = updated_invoice_obj.currency
+                            summary = "\n".join([f"- {name}: {currency} {amount}" for name, amount in new_result.items()])
+                            if "explanation" in raw:
+                                raw["explanation"] += f"\n\n**Updated split breakdown:**\n{summary}"
+                    elif split_op == "split_equal":
+                        people = split_vars.get("people")
+                        if people:
+                            new_result = calculation_service.recalculate_split_equal(
+                                updated_invoice_obj, int(people)
+                            )
+                            saved_invoice.split_data = {
+                                "operation": split_op,
+                                "variables": split_vars,
+                                "result": new_result
+                            }
+                            currency = updated_invoice_obj.currency
+                            if "explanation" in raw:
+                                raw["explanation"] += f"\n\n**Updated split breakdown:**\nEach person pays: {currency} {new_result}"
+                except Exception as e:
+                    print(f"Error recalculating split data: {e}")
+
             # Sync invoice data
             if raw.get("updated_invoice"):
                 saved_invoice.invoice_data = raw["updated_invoice"]
+                # Update invoice name dynamically with the new total
+                try:
+                    currency = raw["updated_invoice"].get("currency")
+                    total = raw["updated_invoice"].get("total")
+                    if currency == "IDR":
+                        amount_str = f"Rp {int(total):,}"
+                    else:
+                        amount_str = f"${total:.2f}"
+                    
+                    if " (" in saved_invoice.name:
+                        base_name = saved_invoice.name.split(" (")[0]
+                        saved_invoice.name = f"{base_name} ({amount_str})"
+                except Exception as e:
+                    print(f"Error updating invoice name: {e}")
             else:
                 saved_invoice.invoice_data = body.invoice.dict()
             
